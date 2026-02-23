@@ -16,6 +16,7 @@ function App() {
   const [filter, setFilter] = useState<'all' | 'matched' | 'unmatched'>('all');
   const [scanScope, setScanScope] = useState<'current-page' | 'current-selection' | 'entire-file' | 'selected-pages'>('current-page');
   const [ignoreHiddenLayers, setIgnoreHiddenLayers] = useState(false);
+  const [setExplicitModeForDarkPrefix, setSetExplicitModeForDarkPrefix] = useState(false);
   const [pages, setPages] = useState<{ id: string; name: string; isCurrent: boolean }[]>([]);
   const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set());
   const [fakeProgress, setFakeProgress] = useState(0);
@@ -121,7 +122,7 @@ function App() {
         setTimeout(() => setMessage(null), 4000);
         setRescanAfterVariableCreated(true);
       } else if (msg.type === 'select-layers-complete') {
-        const n = msg.selectedCount ?? 0;
+        const n = msg.selectedCount != null ? msg.selectedCount : 0;
         setMessage({
           type: 'success',
           text: n > 0 ? `Selected ${n} layer${n === 1 ? '' : 's'} on this page` : 'No layers use this variable on the current page',
@@ -129,9 +130,9 @@ function App() {
         setTimeout(() => setMessage(null), 3000);
       } else if (msg.type === 'import-styles-complete') {
         setImportingStyles(false);
-        const created = msg.importCreated ?? 0;
-        const skipped = msg.importSkipped ?? 0;
-        const total = msg.importTotal ?? 0;
+        const created = msg.importCreated != null ? msg.importCreated : 0;
+        const skipped = msg.importSkipped != null ? msg.importSkipped : 0;
+        const total = msg.importTotal != null ? msg.importTotal : 0;
         setMessage({
           type: 'success',
           text: created > 0
@@ -287,10 +288,11 @@ function App() {
 
     setReplacing(true);
     setLoading(true);
-    const payload: { type: 'replace'; replacements: { styleId: string; variableId: string }[]; scope?: typeof scanScope; pageIds?: string[] } = {
+    const payload: { type: 'replace'; replacements: { styleId: string; variableId: string }[]; scope?: typeof scanScope; pageIds?: string[]; setExplicitModeForDarkPrefix?: boolean } = {
       type: 'replace',
       replacements,
       scope: scanScope,
+      setExplicitModeForDarkPrefix,
     };
     if (scanScope === 'selected-pages' && selectedPageIds.size > 0) {
       payload.pageIds = Array.from(selectedPageIds);
@@ -393,6 +395,21 @@ function App() {
           </span>
           <EyeOff className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
           <span>Ignore hidden layers</span>
+        </label>
+
+        <label className="mt-2.5 flex items-center gap-2.5 text-[12px] text-slate-600 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={setExplicitModeForDarkPrefix}
+            onChange={(e) => setSetExplicitModeForDarkPrefix(e.target.checked)}
+            className="sr-only"
+          />
+          <span className={`flex items-center justify-center w-5 h-5 rounded-md border flex-shrink-0 transition-colors ${
+            setExplicitModeForDarkPrefix ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 group-hover:border-slate-400 text-transparent'
+          }`}>
+            <Check className="w-3 h-3 stroke-[2.5]" />
+          </span>
+          <span>Dark/… styles → Dark mode (others: Auto)</span>
         </label>
 
         {scanScope === 'current-selection' && (

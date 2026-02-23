@@ -50,6 +50,8 @@ export interface MessageFromUI {
   pageIds?: string[];
   /** When true, scan and anchor skip hidden layers. */
   ignoreHiddenLayers?: boolean;
+  /** When true, replace sets Dark mode for Dark/… styles and Auto for others (Light, no prefix). */
+  setExplicitModeForDarkPrefix?: boolean;
 }
 
 export interface MessageToUI {

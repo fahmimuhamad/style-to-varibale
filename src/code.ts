@@ -374,22 +374,6 @@ function normalizePath(name: string): string {
   return name.toLowerCase().trim().replace(/[\s/\\-]+/g, '/').replace(/^\/|\/$/g, '');
 }
 
-/** Levenshtein distance between two strings (for typo-tolerant match). */
-function editDistance(a: string, b: string): number {
-  const m = a.length;
-  const n = b.length;
-  const d: number[][] = [];
-  for (let i = 0; i <= m; i++) d[i] = [i];
-  for (let j = 0; j <= n; j++) d[0][j] = j;
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
-    }
-  }
-  return d[m][n];
-}
-
 function findMatchingVariable(style: PaintStyle, variables: Variable[]): Variable | null {
   const stylePath = normalizePath(style.name);
 
@@ -400,7 +384,6 @@ function findMatchingVariable(style: PaintStyle, variables: Variable[]): Variabl
   }
 
   // 2) Variable path as suffix of style path (e.g. light/canvas/primary → canvas/primary)
-  // Prefer longest matching variable
   let bestMatch: Variable | null = null;
   let bestLength = 0;
   for (const variable of variables) {
@@ -421,16 +404,6 @@ function findMatchingVariable(style: PaintStyle, variables: Variable[]): Variabl
     const varSegments = normalizePath(variable.name).split('/').filter(Boolean);
     const varLast = varSegments[varSegments.length - 1] || '';
     if (varLast === styleLast) return variable;
-  }
-
-  // 4) Last segment typo-tolerant (e.g. Tiertery → Tertiary), same length or ±2, distance ≤ 2
-  for (const variable of variables) {
-    const varSegments = normalizePath(variable.name).split('/').filter(Boolean);
-    const varLast = varSegments[varSegments.length - 1] || '';
-    const lenDiff = Math.abs(styleLast.length - varLast.length);
-    if (lenDiff <= 2 && styleLast.charAt(0) === varLast.charAt(0) && editDistance(styleLast, varLast) <= 2) {
-      return variable;
-    }
   }
 
   return null;

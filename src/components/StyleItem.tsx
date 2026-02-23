@@ -16,12 +16,12 @@ function StyleItem({ style, selected, onToggle, onCreateVariable, onSelectLayers
   const isCreating = creatingStyleId === style.styleId;
   return (
     <div
-      className={`bg-white rounded-2xl border p-3 transition-all ${
+      className={`bg-white rounded-xl border p-3 transition-all ${
         disabled
-          ? 'border-gray-200 opacity-60'
+          ? 'border-slate-200 opacity-60'
           : selected
-          ? 'border-blue-500 ring-2 ring-blue-100'
-          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+          ? 'border-blue-400 ring-2 ring-blue-100 shadow-sm'
+          : 'border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
       }`}
     >
       <div className="flex items-start gap-3">
@@ -34,56 +34,53 @@ function StyleItem({ style, selected, onToggle, onCreateVariable, onSelectLayers
             className="sr-only"
           />
           <span
-            className={`w-5 h-5 rounded-md ring-1 transition flex items-center justify-center ${
+            className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${
               disabled
-                ? 'bg-gray-50 ring-gray-200'
+                ? 'bg-slate-50 border-slate-200'
                 : selected
-                ? 'bg-blue-600 ring-blue-600'
-                : 'bg-white ring-gray-300 hover:ring-gray-400'
+                ? 'bg-blue-600 border-blue-600'
+                : 'bg-white border-slate-300 hover:border-slate-400'
             }`}
           >
-            {selected && <Check className="w-3.5 h-3.5 text-white" />}
+            {selected && <Check className="w-3.5 h-3.5 text-white stroke-[2.5]" />}
           </span>
         </label>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2.5 mb-2">
             <div
-              className="w-7 h-7 rounded-xl border border-gray-200 flex-shrink-0 shadow-inner"
+              className="w-8 h-8 rounded-lg border border-slate-200/80 flex-shrink-0 shadow-sm"
               style={{ backgroundColor: style.previewColor }}
             />
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-gray-900 truncate">
-              {style.styleName}
+              <h3 className="text-sm font-semibold text-slate-900">
+                {style.styleName}
               </h3>
-              <div className="mt-0.5 text-[11px] text-gray-500">
+              <div className="mt-0.5 text-[11px] text-slate-500">
                 {style.usageCount} {style.usageCount === 1 ? 'usage' : 'usages'}
               </div>
             </div>
           </div>
 
           <div
-            className={`mt-2 rounded-xl px-2.5 py-1.5 flex items-center gap-2 min-h-[28px] ${
+            className={`mt-2 rounded-lg px-3 py-2 flex items-center gap-2 min-h-[32px] border ${
               style.matchingVariable
-                ? 'bg-blue-50/80 ring-1 ring-blue-100'
-                : 'bg-amber-50/80 ring-1 ring-amber-100'
+                ? 'bg-blue-50/80 border-blue-200/50'
+                : 'bg-amber-50/80 border-amber-200/50'
             }`}
           >
             {style.matchingVariable ? (
               <>
                 <Variable className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" aria-hidden />
-                <span className="text-[11px] text-gray-600 flex-shrink-0">Maps to</span>
+                <span className="text-[11px] text-slate-600 flex-shrink-0">Maps to</span>
                 <ArrowRight className="w-3 h-3 text-blue-400 flex-shrink-0" aria-hidden />
                 <span
-                  className="w-4 h-4 rounded-md border border-gray-200 flex-shrink-0 shadow-inner"
+                  className="w-4 h-4 rounded border border-slate-200/80 flex-shrink-0 shadow-sm"
                   style={{ backgroundColor: style.matchingVariable.previewColor }}
-                  title={`Variable color: ${style.matchingVariable.name}`}
+                  title={style.matchingVariable.name}
                   aria-hidden
                 />
-                <span
-                  className="font-semibold text-blue-900 text-xs truncate flex-1 min-w-0"
-                  title={style.matchingVariable.name}
-                >
+                <span className="font-semibold text-blue-900 text-xs flex-1 min-w-0 overflow-hidden text-ellipsis" title={style.matchingVariable.name}>
                   {style.matchingVariable.name}
                 </span>
                 {onSelectLayersWithVariable && (
@@ -91,30 +88,30 @@ function StyleItem({ style, selected, onToggle, onCreateVariable, onSelectLayers
                     type="button"
                     onClick={() => onSelectLayersWithVariable(style.styleId, style.matchingVariable!.id)}
                     disabled={disabled}
-                    className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-lg text-gray-500 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                    title="Select all layers with this variable"
+                    className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                    title="Select layers with this variable"
                     aria-label="Select layers"
                   >
-                    <Crosshair className="w-3.5 h-3.5" />
+                    <Crosshair className="w-4 h-4" />
                   </button>
                 )}
               </>
             ) : (
               <>
                 <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" aria-hidden />
-                <span className="text-[11px] text-amber-800 flex-1" title="Variables are matched by exact name, path suffix (e.g. Light/Ink/Primary → Ink/Primary), or last segment. Create a variable below or ensure your library has one with a matching name.">
-                  No matching variable found
+                <span className="text-[11px] text-amber-800 flex-1" title="Create a variable or ensure your library has one with a matching name.">
+                  No matching variable
                 </span>
                 {onSelectLayersWithStyle && (
                   <button
                     type="button"
                     onClick={() => onSelectLayersWithStyle(style.styleId)}
                     disabled={disabled}
-                    className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-lg text-amber-600 hover:bg-amber-100 hover:text-amber-800 transition-colors"
-                    title="Select layers that use this style (no variable match)"
+                    className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-amber-600 hover:bg-amber-100 hover:text-amber-800 transition-colors"
+                    title="Select layers with this style"
                     aria-label="Select layers"
                   >
-                    <Crosshair className="w-3.5 h-3.5" />
+                    <Crosshair className="w-4 h-4" />
                   </button>
                 )}
                 {onCreateVariable && (
@@ -122,7 +119,7 @@ function StyleItem({ style, selected, onToggle, onCreateVariable, onSelectLayers
                     type="button"
                     onClick={() => onCreateVariable(style.styleId)}
                     disabled={disabled || isCreating}
-                    className="flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-[11px] font-medium transition-colors"
+                    className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white text-[11px] font-medium transition-colors shadow-sm"
                   >
                     <Plus className="w-3 h-3" />
                     {isCreating ? 'Creating…' : 'Create variable'}

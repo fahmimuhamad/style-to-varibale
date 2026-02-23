@@ -25,31 +25,26 @@ function StyleList({ styles, selectedStyles, onToggle, onCreateVariable, onSelec
     <div className="space-y-6">
       {stylesWithVariables.length > 0 && (
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <h2 className="text-xs font-semibold text-gray-900 tracking-wide uppercase">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
               Matched
             </h2>
-            <span className="text-[11px] text-blue-900 px-2 py-0.5 rounded-full bg-blue-50 ring-1 ring-blue-200">
+            <span className="text-[11px] text-blue-700 px-2 py-0.5 rounded-lg bg-blue-50 border border-blue-200/50">
               {stylesWithVariables.length}
             </span>
           </div>
-          <div className="mb-2 pl-0.5">
-            <label className="inline-flex items-center gap-1 cursor-pointer select-none">
+          <div className="mb-2.5">
+            <label className="inline-flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
-                className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
                 checked={allMatchedSelected}
                 onChange={(e) => {
-                  if (e.target.checked) {
-                    onSelectAllMatched();
-                  } else {
-                    onClearSelection();
-                  }
+                  if (e.target.checked) onSelectAllMatched();
+                  else onClearSelection();
                 }}
               />
-              <span className="text-[11px] text-gray-700">
-                Select all
-              </span>
+              <span className="text-[11px] text-slate-600">Select all</span>
             </label>
           </div>
           <div className="space-y-2">
@@ -70,10 +65,10 @@ function StyleList({ styles, selectedStyles, onToggle, onCreateVariable, onSelec
       {stylesWithoutVariables.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xs font-semibold text-gray-700 tracking-wide uppercase">
+            <h2 className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
               Unmatched
             </h2>
-            <span className="text-[11px] text-amber-900 px-2 py-0.5 rounded-full bg-amber-50 ring-1 ring-amber-200">
+            <span className="text-[11px] text-amber-800 px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-200/50">
               {stylesWithoutVariables.length}
             </span>
           </div>

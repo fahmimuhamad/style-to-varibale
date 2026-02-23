@@ -299,51 +299,51 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col text-gray-900">
-      <header className="bg-white border-b border-gray-200/90 px-4 py-3 sticky top-0 z-10">
+    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900">
+      <header className="bg-white/95 backdrop-blur-sm border-b border-slate-200/80 px-4 py-3.5 sticky top-0 z-10 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-[15px] font-semibold text-gray-900 tracking-tight">
+            <h1 className="text-[15px] font-semibold text-slate-900 tracking-tight">
               Style → Variable
             </h1>
-            <p className="text-[11px] text-gray-500 mt-0.5">
+            <p className="text-[11px] text-slate-500 mt-0.5">
               Scan, match, then replace in bulk.
             </p>
           </div>
-          <div className="flex items-center gap-1 shrink-0" ref={menuRef}>
+          <div className="flex items-center gap-1.5 shrink-0" ref={menuRef}>
             <button
               type="button"
               onClick={handleScan}
               disabled={loading}
-              className="h-9 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-500 text-white text-sm font-medium transition-colors flex items-center gap-2"
+              className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-500 text-white text-sm font-medium transition-all flex items-center gap-2 shadow-sm"
               aria-label="Scan file"
               title="Scan file"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              {loading ? 'Scanning' : 'Scan'}
+              {loading ? 'Scanning…' : 'Scan'}
             </button>
             <div className="relative">
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setMenuOpen(open => !open); }}
                 disabled={loading || importingStyles}
-                className="h-9 w-9 flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
+                className="h-9 w-9 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50 transition-colors"
                 aria-label="More actions"
                 title="More actions"
               >
                 <MoreVertical className="w-4 h-4" />
               </button>
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-1 py-1 min-w-[200px] rounded-xl bg-white shadow-lg ring-1 ring-gray-200 z-20">
+                <div className="absolute right-0 top-full mt-1.5 py-1 min-w-[220px] rounded-xl bg-white shadow-xl border border-slate-200 z-20">
                   <button
                     type="button"
                     onClick={() => {
                       setMenuOpen(false);
                       handleImportAllStylesToVariables();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] text-gray-700 hover:bg-gray-50"
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[12px] text-slate-700 hover:bg-slate-50 rounded-lg mx-1 transition-colors"
                   >
-                    <Copy className="w-3.5 h-3.5 text-gray-500" />
+                    <Copy className="w-3.5 h-3.5 text-slate-400" />
                     Copy all color styles to variables
                   </button>
                 </div>
@@ -352,24 +352,24 @@ function App() {
           </div>
         </div>
 
-        {/* Scope: single segmented control */}
+        {/* Scope */}
         <div className="mt-3">
-          <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1.5">Scope</p>
-          <div className="inline-flex p-0.5 rounded-xl bg-gray-100 border border-gray-200/80">
+          <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">Scope</p>
+          <div className="flex flex-wrap gap-0.5 p-0.5 rounded-xl bg-slate-100/80 border border-slate-200/60">
             {[
               { id: 'current-selection' as const, label: 'Section' },
               { id: 'current-page' as const, label: 'Page' },
               { id: 'entire-file' as const, label: 'File' },
-              { id: 'selected-pages' as const, label: 'Pages…' },
+              { id: 'selected-pages' as const, label: 'Select pages' },
             ].map(({ id, label }) => (
               <button
                 key={id}
                 type="button"
                 onClick={() => setScanScope(id)}
-                className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all duration-150 ${
+                className={`flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
                   scanScope === id
-                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/80'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50 border border-transparent'
+                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/70 border border-transparent'
                 }`}
               >
                 {label}
@@ -378,8 +378,8 @@ function App() {
           </div>
         </div>
 
-        {/* Option: ignore hidden layers */}
-        <label className="mt-2.5 flex items-center gap-2.5 text-[12px] text-gray-700 cursor-pointer group">
+        {/* Ignore hidden layers */}
+        <label className="mt-2.5 flex items-center gap-2.5 text-[12px] text-slate-600 cursor-pointer group">
           <input
             type="checkbox"
             checked={ignoreHiddenLayers}
@@ -387,31 +387,31 @@ function App() {
             className="sr-only"
           />
           <span className={`flex items-center justify-center w-5 h-5 rounded-md border flex-shrink-0 transition-colors ${
-            ignoreHiddenLayers ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 group-hover:border-gray-400 text-transparent'
+            ignoreHiddenLayers ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 group-hover:border-slate-400 text-transparent'
           }`}>
             <Check className="w-3 h-3 stroke-[2.5]" />
           </span>
-          <EyeOff className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+          <EyeOff className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
           <span>Ignore hidden layers</span>
         </label>
 
         {scanScope === 'current-selection' && (
-          <p className="mt-2 pl-2 border-l-2 border-blue-200 text-[11px] text-gray-500">
-            Select a section or frame on the canvas, then Scan. Only layers inside your selection will be scanned.
+          <p className="mt-2 pl-2.5 border-l-2 border-blue-300 text-[11px] text-slate-500">
+            Select a section or frame on the canvas, then Scan.
           </p>
         )}
 
         {scanScope === 'selected-pages' && (
-          <div className="mt-2 p-2.5 rounded-xl bg-gray-50 border border-gray-200/80 max-h-28 overflow-auto">
-            <p className="text-[11px] font-medium text-gray-600 mb-1.5">Choose pages to scan</p>
+          <div className="mt-2 p-3 rounded-xl bg-slate-50/80 border border-slate-200/60 max-h-28 overflow-auto">
+            <p className="text-[11px] font-medium text-slate-600 mb-2">Choose pages to scan</p>
             {pages.length > 0 ? (
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {pages.map(page => {
                   const checked = selectedPageIds.has(page.id);
                   return (
                     <label
                       key={page.id}
-                      className="flex items-center gap-2 text-[12px] text-gray-800 cursor-pointer hover:bg-white/60 rounded-lg px-1.5 py-1 -mx-1"
+                      className="flex items-start gap-2.5 text-[12px] text-slate-700 cursor-pointer hover:bg-white/80 rounded-lg px-2 py-1.5 -mx-0.5 transition-colors"
                     >
                       <input
                         type="checkbox"
@@ -424,35 +424,35 @@ function App() {
                             return next;
                           });
                         }}
-                        className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-200"
+                        className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-200 mt-0.5 flex-shrink-0"
                       />
-                      <span>
+                      <span className="min-w-0 flex-1 break-words">
                         {page.name}
-                        {page.isCurrent && <span className="ml-1 text-[10px] text-blue-600">(current)</span>}
+                        {page.isCurrent && <span className="ml-1.5 text-[10px] text-blue-600 font-medium">(current)</span>}
                       </span>
                     </label>
                   );
                 })}
               </div>
             ) : (
-              <p className="text-[11px] text-gray-500">No pages in this file.</p>
+              <p className="text-[11px] text-slate-500">No pages in this file.</p>
             )}
           </div>
         )}
 
         {styles.length > 0 && (
-          <div className="mt-2.5 flex flex-wrap gap-1.5 text-[11px]">
-            <span className="px-2 py-1 rounded-lg bg-gray-100 text-gray-600 border border-gray-200/60">
+          <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+            <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200/50">
               {styles.length} styles
             </span>
-            <span className="px-2 py-1 rounded-lg bg-gray-100 text-gray-600 border border-gray-200/60">
+            <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200/50">
               {totalUsages} usages
             </span>
-            <span className="px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200/60">
+            <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200/50">
               {stylesWithVariables.length} matched
             </span>
             {stylesWithoutVariables.length > 0 && (
-              <span className="px-2 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200/60">
+              <span className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200/50">
                 {stylesWithoutVariables.length} unmatched
               </span>
             )}
@@ -462,89 +462,86 @@ function App() {
 
       {message && (
         <div
-          className={`mx-4 mt-3 p-3 rounded-2xl flex items-start gap-2 shadow-sm ring-1 ${
+          className={`mx-4 mt-3 px-4 py-3 rounded-xl flex items-start gap-3 border ${
             message.type === 'success'
-              ? 'bg-emerald-50 text-emerald-900 ring-emerald-200'
-              : 'bg-rose-50 text-rose-900 ring-rose-200'
+              ? 'bg-emerald-50/95 text-emerald-900 border-emerald-200/60'
+              : 'bg-rose-50/95 text-rose-900 border-rose-200/60'
           }`}
         >
           {message.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-emerald-600" />
           ) : (
-            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-rose-600" />
           )}
-          <p className="text-sm">{message.text}</p>
+          <p className="text-[13px] leading-snug">{message.text}</p>
         </div>
       )}
 
       <div className="flex-1 overflow-auto px-4 pt-4 pb-28">
         {styles.length === 0 && rawColors.length === 0 && !loading && !importingStyles && (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-50 ring-1 ring-gray-200 mb-4">
-              <RefreshCw className="w-8 h-8 text-gray-400" />
+          <div className="text-center py-14 px-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white border border-slate-200/80 shadow-sm mb-5">
+              <RefreshCw className="w-10 h-10 text-slate-300" />
             </div>
-            <h3 className="text-sm font-medium text-gray-900 mb-1">
+            <h3 className="text-sm font-semibold text-slate-800 mb-1.5">
               No styles scanned yet
             </h3>
-            <p className="text-xs text-gray-600">
-              Click “Scan” to find color styles and hex-only colors. Use the ⋮ menu next to Scan to copy all styles to variables.
+            <p className="text-xs text-slate-500 max-w-[260px] mx-auto leading-relaxed">
+              Click <strong>Scan</strong> to find color styles and hex-only colors. Use the menu next to Scan to copy all styles to variables.
             </p>
           </div>
         )}
 
         {importingStyles && !loading && (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-50 ring-1 ring-emerald-200 mb-4">
-              <Copy className="w-8 h-8 text-emerald-600 animate-pulse" />
+          <div className="text-center py-14 px-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-emerald-50 border border-emerald-200/60 mb-5">
+              <Copy className="w-10 h-10 text-emerald-500 animate-pulse" />
             </div>
-            <p className="text-sm text-gray-800 font-medium">Copying color styles to variables…</p>
-            <p className="text-xs text-gray-500 mt-1">Same names and colors in “Style to Variable” collection.</p>
+            <p className="text-sm font-medium text-slate-800">Copying color styles to variables…</p>
+            <p className="text-xs text-slate-500 mt-1.5">Same names and colors in “Style to Variable” collection.</p>
           </div>
         )}
 
         {loading && (
-          <div className="text-center py-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 ring-1 ring-blue-200 mb-4">
-              <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+          <div className="text-center py-12 px-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-blue-50 border border-blue-200/60 mb-5">
+              <RefreshCw className="w-10 h-10 text-blue-500 animate-spin" />
             </div>
-            <p className="text-sm text-gray-800 font-medium">
-              {replacing ? 'Replacing selected styles…' : scanPhase === 'variables' ? 'Loading variables…' : 'Scanning nodes…'}
+            <p className="text-sm font-medium text-slate-800">
+              {replacing ? 'Replacing…' : scanPhase === 'variables' ? 'Loading variables…' : 'Scanning…'}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {replacing ? 'One pass over the file. This may take a moment.' : scanPhase === 'variables' ? 'Fetching from libraries. Almost done.' : 'You can keep designing while this runs.'}
+            <p className="text-xs text-slate-500 mt-1.5">
+              {replacing ? 'One pass over the file.' : scanPhase === 'variables' ? 'Almost done.' : 'You can keep designing.'}
             </p>
             {!replacing && scanPhase !== 'variables' && (
-              <div className="w-full max-w-xs mx-auto mt-4">
-                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+              <div className="w-full max-w-[240px] mx-auto mt-5">
+                <div className="h-1.5 rounded-full bg-slate-200 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-400 transition-[width] duration-300"
+                    className="h-full bg-blue-500 rounded-full transition-[width] duration-300 ease-out"
                     style={{ width: `${fakeProgress}%` }}
                   />
                 </div>
-                <div className="mt-1 text-[11px] text-gray-500">
-                  {fakeProgress}% complete · Scanning nodes
-                </div>
+                <div className="mt-2 text-[11px] text-slate-500">{fakeProgress}%</div>
               </div>
             )}
           </div>
         )}
 
         {(styles.length > 0 || rawColors.length > 0) && !loading && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {styles.length > 0 && (
-            <div className="bg-white rounded-2xl ring-1 ring-gray-200 p-3">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-3.5">
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search styles or variables…"
-                    className="w-full h-9 pl-8 pr-3 rounded-xl bg-white ring-1 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm"
+                    className="w-full h-9 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200/80 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-200 text-sm placeholder:text-slate-400 transition-shadow"
                   />
                 </div>
-
-                <div className="inline-flex p-0.5 rounded-lg bg-gray-100 border border-gray-200/80">
+                <div className="inline-flex p-0.5 rounded-lg bg-slate-100/80 border border-slate-200/60">
                   {(['all', 'matched', 'unmatched'] as const).map((f) => (
                     <button
                       key={f}
@@ -552,8 +549,8 @@ function App() {
                       onClick={() => setFilter(f)}
                       className={`px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all ${
                         filter === f
-                          ? 'bg-white text-gray-900 shadow-sm border border-gray-200/80'
-                          : 'text-gray-600 hover:text-gray-900 border border-transparent'
+                          ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                          : 'text-slate-600 hover:text-slate-900 border border-transparent'
                       }`}
                     >
                       {f === 'all' ? 'All' : f === 'matched' ? 'Matched' : 'Unmatched'}
@@ -561,38 +558,31 @@ function App() {
                   ))}
                 </div>
               </div>
-
-              <div className="mt-2 flex items-center justify-between text-[11px] text-gray-600">
+              <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500">
                 <div className="flex items-center gap-1.5">
-                  <ListFilter className="w-3.5 h-3.5 text-gray-400" />
-                  <span>
-                    Showing <span className="font-medium text-gray-900">{filteredStyles.length}</span>
-                  </span>
+                  <ListFilter className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Showing <span className="font-medium text-slate-700">{filteredStyles.length}</span></span>
                 </div>
-                <span>
-                  Selectable <span className="font-medium text-gray-900">{selectableIds.length}</span>
-                </span>
+                <span>Selectable <span className="font-medium text-slate-700">{selectableIds.length}</span></span>
               </div>
             </div>
             )}
 
             {styles.length > 0 && filteredStyles.length === 0 && (
-              <div className="bg-gray-50 ring-1 ring-gray-200 rounded-2xl p-4">
-                <div className="text-sm font-medium text-gray-900">No results</div>
-                <div className="text-xs text-gray-600 mt-1">
-                  Try clearing the search or switching the filter.
-                </div>
-                <div className="mt-3 flex gap-2">
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-5 text-center">
+                <p className="text-sm font-medium text-slate-800">No results</p>
+                <p className="text-xs text-slate-500 mt-1">Try clearing the search or changing the filter.</p>
+                <div className="mt-4 flex justify-center gap-2">
                   <button
                     type="button"
-                    className="h-9 px-3 rounded-xl bg-white ring-1 ring-gray-200 hover:bg-gray-50 text-sm"
+                    className="h-8 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
                     onClick={() => setQuery('')}
                   >
                     Clear search
                   </button>
                   <button
                     type="button"
-                    className="h-9 px-3 rounded-xl bg-white ring-1 ring-gray-200 hover:bg-gray-50 text-sm"
+                    className="h-8 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
                     onClick={() => setFilter('all')}
                   >
                     Show all
@@ -616,28 +606,28 @@ function App() {
             )}
 
             {rawColors.length > 0 && (
-              <div className="bg-white rounded-2xl ring-1 ring-gray-200 p-3 mt-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Palette className="w-4 h-4 text-amber-600" />
-                  <h3 className="text-sm font-semibold text-gray-900">Colors without style</h3>
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-3.5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Palette className="w-4 h-4 text-amber-500" />
+                  <h3 className="text-sm font-semibold text-slate-900">Colors without style</h3>
                 </div>
-                <p className="text-[11px] text-gray-600 mb-3">
-                  Hex-only colors (no style or variable). Choose a variable to replace them.
+                <p className="text-[11px] text-slate-500 mb-3">
+                  Hex-only colors. Pick a variable to replace them.
                 </p>
                 <ul className="space-y-2 max-h-48 overflow-y-auto">
                   {rawColors.map((raw) => (
                     <li
                       key={raw.colorKey}
-                      className="flex items-center gap-3 p-2 rounded-xl bg-gray-50 ring-1 ring-gray-100"
+                      className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50/80 border border-slate-100"
                     >
                       <span
-                        className="w-8 h-8 rounded-lg border border-gray-200 flex-shrink-0 shadow-inner"
+                        className="w-9 h-9 rounded-lg border border-slate-200/80 flex-shrink-0 shadow-sm"
                         style={{ backgroundColor: raw.previewColor }}
                         title={raw.previewColor}
                       />
                       <div className="min-w-0 flex-1">
-                        <span className="text-xs font-medium text-gray-900">{raw.previewColor}</span>
-                        <span className="text-[11px] text-gray-500 ml-1.5">
+                        <span className="text-xs font-medium text-slate-800">{raw.previewColor}</span>
+                        <span className="text-[11px] text-slate-500 ml-1.5">
                           {raw.usageCount} {raw.usageCount === 1 ? 'usage' : 'usages'}
                         </span>
                       </div>
@@ -661,8 +651,8 @@ function App() {
                             '*'
                           );
                         }}
-                        className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-amber-600 hover:bg-amber-100 transition-colors"
-                        title="Select layers with this hex color"
+                        className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
+                        title="Select layers with this color"
                         aria-label="Select layers"
                       >
                         <Crosshair className="w-4 h-4" />
@@ -677,13 +667,13 @@ function App() {
       </div>
 
       {(styles.length > 0 || rawColors.length > 0) && (
-        <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3">
+        <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-200/80 px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
           <div className="space-y-2">
             {styles.length > 0 && (
               <button
                 onClick={handleReplaceSelected}
                 disabled={loading || selectedStyles.size === 0}
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-500 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm"
+                className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-semibold text-sm transition-all shadow-sm"
               >
                 Replace selected ({selectedStyles.size})
               </button>
@@ -710,19 +700,17 @@ function App() {
                     parent.postMessage({ pluginMessage: payload }, '*');
                   }}
                   disabled={loading || rawMappingsCount === 0}
-                  className="w-full px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-200 disabled:text-gray-500 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm"
+                  className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-semibold text-sm transition-all shadow-sm"
                 >
                   Replace hex colors ({rawMappingsCount} chosen)
                 </button>
               );
             })()}
-            <div className="flex items-center justify-end text-[11px] text-gray-600">
+            <div className="flex items-center justify-end text-[11px] text-slate-500 pt-0.5">
               {styles.length > 0 && <span>{selectedStyles.size} selected</span>}
               {styles.length > 0 && rawColors.length > 0 && ' · '}
               {rawColors.length > 0 && (
-                <span>
-                  {rawColors.filter((r) => rawColorChoices[r.colorKey]).length} hex mapping(s)
-                </span>
+                <span>{rawColors.filter((r) => rawColorChoices[r.colorKey]).length} hex mapping(s)</span>
               )}
             </div>
           </div>

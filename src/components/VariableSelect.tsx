@@ -104,46 +104,46 @@ export default function VariableSelect({
           type="button"
           onClick={() => !disabled && setOpen((o) => !o)}
           disabled={disabled}
-          className="h-8 min-w-[140px] px-2.5 rounded-lg bg-white ring-1 ring-gray-200 text-left text-xs focus:outline-none focus:ring-2 focus:ring-blue-200 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="h-9 min-w-[140px] px-3 rounded-xl bg-slate-50 border border-slate-200/80 text-left text-xs focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-200 flex items-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed transition-shadow"
         >
           {selectedVar ? (
             <>
               <span
-                className="w-4 h-4 rounded-full border border-gray-200 flex-shrink-0 shadow-inner"
+                className="w-4 h-4 rounded-lg border border-slate-200/80 flex-shrink-0 shadow-sm"
                 style={{ backgroundColor: selectedVar.previewColor }}
                 title={selectedVar.previewColor}
               />
-              <span className="truncate text-gray-900">{selectedVar.name}</span>
+              <span className="flex-1 min-w-0 overflow-hidden text-ellipsis text-slate-900">{selectedVar.name}</span>
             </>
           ) : (
-            <span className="text-gray-500">{placeholder}</span>
+            <span className="text-slate-500 flex-1 text-left">{placeholder}</span>
           )}
-          <ChevronDown className={`w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-auto transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3.5 h-3.5 text-slate-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-white">
-          <header className="flex-shrink-0 flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-900">Choose variable</h3>
+        <div className="fixed inset-0 z-[100] flex flex-col bg-slate-50">
+          <header className="flex-shrink-0 flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-200/80 bg-white">
+            <h3 className="text-sm font-semibold text-slate-900">Choose variable</h3>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+              className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
           </header>
           {hasRecommendations && (
-            <div className="flex-shrink-0 px-4 py-2 border-b border-gray-100">
+            <div className="flex-shrink-0 px-4 py-2.5 border-b border-slate-100 bg-white/80">
               <button
                 type="button"
                 onClick={() => setRecommendedOnly((o) => !o)}
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition ${
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition border ${
                   recommendedOnly
-                    ? 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-amber-50 text-amber-800 border-amber-200/60'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border-transparent'
                 }`}
               >
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
@@ -153,7 +153,7 @@ export default function VariableSelect({
           )}
           <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
             {groups.length === 0 ? (
-              <p className="text-sm text-gray-500 py-4">
+              <p className="text-sm text-slate-500 py-6 text-center">
                 {recommendedOnly ? 'No variables match this color.' : 'No variables available.'}
               </p>
             ) : (
@@ -165,12 +165,12 @@ export default function VariableSelect({
                       <button
                         type="button"
                         onClick={() => toggleGroup(groupName)}
-                        className="w-full flex items-center gap-1.5 px-2.5 py-2 text-left text-[11px] font-semibold text-gray-600 hover:bg-gray-50 uppercase tracking-wide rounded-lg"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left text-[11px] font-semibold text-slate-600 hover:bg-white rounded-lg uppercase tracking-wider transition-colors"
                       >
                         {isExpanded ? (
-                          <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                         ) : (
-                          <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                         )}
                         {groupName}
                       </button>
@@ -185,16 +185,16 @@ export default function VariableSelect({
                                 onChange(v.id);
                                 setOpen(false);
                               }}
-                              className={`w-full flex items-center gap-2 pl-8 pr-3 py-2 text-left text-sm hover:bg-gray-50 rounded-lg ${
-                                value === v.id ? 'bg-blue-50 text-blue-900' : 'text-gray-900'
+                              className={`w-full flex items-center gap-2.5 pl-9 pr-3 py-2.5 text-left text-sm rounded-lg transition-colors ${
+                                value === v.id ? 'bg-blue-50 text-blue-900 border border-blue-200/50' : 'text-slate-800 hover:bg-white border border-transparent'
                               }`}
                             >
                               <span
-                                className="w-5 h-5 rounded-full border border-gray-200 flex-shrink-0 shadow-inner"
+                                className="w-5 h-5 rounded-lg border border-slate-200/80 flex-shrink-0 shadow-sm"
                                 style={{ backgroundColor: v.previewColor }}
                                 title={v.previewColor}
                               />
-                              <span className="truncate flex-1">{v.name}</span>
+                              <span className="flex-1 min-w-0 overflow-hidden text-ellipsis">{v.name}</span>
                               {isRecommended && (
                                 <span className="flex-shrink-0 px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-medium">
                                   Recommended

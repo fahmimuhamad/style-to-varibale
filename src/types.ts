@@ -26,9 +26,16 @@ export interface VariableOption {
   previewColor: string;
 }
 
+export interface VariableMode {
+  modeId: string;
+  name: string;
+}
+
 export interface ReplacementPair {
   styleId: string;
   variableId: string;
+  /** When set, the layer will use this mode for the variable's collection. */
+  modeId?: string;
 }
 
 export interface RawColorMapping {
@@ -37,7 +44,7 @@ export interface RawColorMapping {
 }
 
 export interface MessageFromUI {
-  type: 'scan' | 'replace' | 'create-variable-from-style' | 'import-all-styles-to-variables' | 'select-layers-with-variable' | 'select-layers-with-style' | 'select-layers-with-raw-color' | 'replace-raw-colors' | 'get-pages';
+  type: 'scan' | 'replace' | 'create-variable-from-style' | 'import-all-styles-to-variables' | 'select-layers-with-variable' | 'select-layers-with-style' | 'select-layers-with-raw-color' | 'replace-raw-colors' | 'get-pages' | 'get-variable-modes';
   styleId?: string;
   variableId?: string;
   colorKey?: string;
@@ -55,8 +62,11 @@ export interface MessageFromUI {
 }
 
 export interface MessageToUI {
-  type: 'init' | 'scan-phase' | 'scan-complete' | 'replace-complete' | 'error' | 'variable-created' | 'import-styles-complete' | 'select-layers-complete' | 'pages-list';
+  type: 'init' | 'scan-phase' | 'scan-complete' | 'replace-complete' | 'error' | 'variable-created' | 'import-styles-complete' | 'select-layers-complete' | 'pages-list' | 'variable-modes';
   phase?: 'variables';
+  /** Modes for a variable's collection (response to get-variable-modes). */
+  variableId?: string;
+  modes?: VariableMode[];
   styles?: StyleUsage[];
   rawColors?: RawColorUsage[];
   allVariables?: VariableOption[];

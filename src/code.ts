@@ -23,7 +23,7 @@ interface RawColorMappingMsg {
 }
 
 interface MessageFromUI {
-  type: 'scan' | 'replace' | 'create-variable-from-style' | 'import-all-styles-to-variables' | 'select-layers-with-variable' | 'select-layers-with-style' | 'select-layers-with-raw-color' | 'replace-raw-colors' | 'get-pages';
+  type: 'scan' | 'replace' | 'create-variable-from-style' | 'import-all-styles-to-variables' | 'select-layers-with-variable' | 'select-layers-with-style' | 'select-layers-with-raw-color' | 'replace-raw-colors' | 'get-pages' | 'get-variable-modes';
   styleId?: string;
   variableId?: string;
   colorKey?: string;
@@ -37,8 +37,10 @@ interface MessageFromUI {
 }
 
 interface MessageToUI {
-  type: 'init' | 'scan-phase' | 'scan-complete' | 'replace-complete' | 'error' | 'variable-created' | 'import-styles-complete' | 'select-layers-complete' | 'pages-list';
+  type: 'init' | 'scan-phase' | 'scan-complete' | 'replace-complete' | 'error' | 'variable-created' | 'import-styles-complete' | 'select-layers-complete' | 'pages-list' | 'variable-modes';
   phase?: 'variables';
+  variableId?: string;
+  modes?: { modeId: string; name: string }[];
   styles?: StyleUsage[];
   rawColors?: { colorKey: string; r: number; g: number; b: number; a: number; usageCount: number; previewColor: string }[];
   allVariables?: { id: string; name: string; previewColor: string }[];
@@ -126,6 +128,15 @@ figma.ui.onmessage = async (msg: MessageFromUI) => {
         isCurrent: page === figma.currentPage,
       }));
       figma.ui.postMessage({ type: 'pages-list', pages } as MessageToUI);
+    } else if (msg.type === 'get-variable-modes' && msg.variableId) {
+      const variable = figma.variables.getVariableById(msg.variableId);
+      if (!variable) {
+        figma.ui.postMessage({ type: 'variable-modes', variableId: msg.variableId, modes: [] } as MessageToUI);
+      } else {
+        const collection = await figma.variables.getVariableCollectionByIdAsync(variable.variableCollectionId);
+        const modes = collection ? collection.modes.map(m => ({ modeId: m.modeId, name: m.name })) : [];
+        figma.ui.postMessage({ type: 'variable-modes', variableId: msg.variableId, modes } as MessageToUI);
+      }
     }
   } catch (error) {
     figma.ui.postMessage({
@@ -816,8 +827,8 @@ function getModePrefixFromStyleName(styleName: string, variableName: string): st
   return prefix;
 }
 
-/** Build styleId → variable + style color (for replacing by color on mixed-content layers). Optionally includes modeName for suffix matches. */
-function getReplaceMap(pairs: { styleId: string; variableId: string }[]): Map<string, ReplaceEntry> {
+/** Build styleId → variable + style color (for replacing by color on mixed-content layers). Optionally includes modeName for suffix matches or _requestedModeId from UI. */
+function getReplaceMap(pairs: { styleId: string; variableId: string; modeId?: string }[]): Map<string, ReplaceEntry> {
   const map = new Map<string, ReplaceEntry>();
   for (let i = 0; i < pairs.length; i++) {
     const v = figma.variables.getVariableById(pairs[i].variableId);
@@ -833,33 +844,44 @@ function getReplaceMap(pairs: { styleId: string; variableId: string }[]): Map<st
       b: color ? color.b : 0,
       a: color ? color.a : 1,
     };
+    const ext = entry as ReplaceEntry & { _modeName?: string; _collectionId?: string; _requestedModeId?: string };
     if (modeName) {
-      (entry as ReplaceEntry & { _modeName?: string; _collectionId?: string })._modeName = modeName;
-      (entry as ReplaceEntry & { _modeName?: string; _collectionId?: string })._collectionId = v.variableCollectionId;
+      ext._modeName = modeName;
+      ext._collectionId = v.variableCollectionId;
     }
+    if (pairs[i].modeId) ext._requestedModeId = pairs[i].modeId;
     map.set(pairs[i].styleId, entry);
   }
   return map;
 }
 
-/** Resolve collection for every entry; set explicitMode only when style had a Dark prefix (Light and others → Auto). */
-async function enrichReplaceMapWithExplicitModes(map: Map<string, ReplaceEntry>): Promise<void> {
+/** Resolve collection for every entry; set explicitMode from UI-requested modeId, or when style had a Dark prefix (Light and others → Auto). */
+async function enrichReplaceMapWithExplicitModes(
+  map: Map<string, ReplaceEntry>,
+  setExplicitModeForDarkPrefix?: boolean
+): Promise<void> {
   for (const [, entry] of map) {
     const collectionId = entry.variable.variableCollectionId;
     const collection = await figma.variables.getVariableCollectionByIdAsync(collectionId);
     if (collection) {
       entry.collection = collection;
     }
-    const e = entry as ReplaceEntry & { _modeName?: string; _collectionId?: string };
-    const modeName = e._modeName;
-    if (modeName && modeName.toLowerCase() === 'dark' && collection) {
-      const mode = collection.modes.find((m) => m.name.toLowerCase() === 'dark');
-      if (mode) {
-        entry.explicitMode = { collection, modeId: mode.modeId };
+    const e = entry as ReplaceEntry & { _modeName?: string; _collectionId?: string; _requestedModeId?: string };
+    const requestedModeId = e._requestedModeId;
+    if (requestedModeId && collection && collection.modes.some((m) => m.modeId === requestedModeId)) {
+      entry.explicitMode = { collection, modeId: requestedModeId };
+    } else if (setExplicitModeForDarkPrefix) {
+      const modeName = e._modeName;
+      if (modeName && modeName.toLowerCase() === 'dark' && collection) {
+        const mode = collection.modes.find((m) => m.name.toLowerCase() === 'dark');
+        if (mode) {
+          entry.explicitMode = { collection, modeId: mode.modeId };
+        }
       }
     }
     delete e._modeName;
     delete e._collectionId;
+    delete e._requestedModeId;
   }
 }
 
@@ -1041,7 +1063,7 @@ function applyReplaceToNode(node: SceneNode, replaceMap: Map<string, ReplaceEntr
 const REPLACE_CHUNK_SIZE = 400;
 
 async function replaceStylesWithVariablesBatch(
-  pairs: { styleId: string; variableId: string }[],
+  pairs: { styleId: string; variableId: string; modeId?: string }[],
   scope: 'current-page' | 'current-selection' | 'entire-file' | 'selected-pages' = 'current-page',
   pageIds?: string[],
   setExplicitModeForDarkPrefix?: boolean
@@ -1051,15 +1073,17 @@ async function replaceStylesWithVariablesBatch(
     figma.ui.postMessage({ type: 'replace-complete', replaced: 0 } as MessageToUI);
     return;
   }
-  if (setExplicitModeForDarkPrefix) {
-    await enrichReplaceMapWithExplicitModes(replaceMap);
+  const hasRequestedModes = pairs.some((p) => p.modeId);
+  if (setExplicitModeForDarkPrefix || hasRequestedModes) {
+    await enrichReplaceMapWithExplicitModes(replaceMap, setExplicitModeForDarkPrefix);
   }
+  const applyVariableModes = setExplicitModeForDarkPrefix || hasRequestedModes;
   const nodes = collectNodesInScope(scope, pageIds);
   let replacedCount = 0;
   for (let i = 0; i < nodes.length; i += REPLACE_CHUNK_SIZE) {
     const end = Math.min(i + REPLACE_CHUNK_SIZE, nodes.length);
     for (let j = i; j < end; j++) {
-      if (applyReplaceToNode(nodes[j], replaceMap, setExplicitModeForDarkPrefix)) replacedCount++;
+      if (applyReplaceToNode(nodes[j], replaceMap, applyVariableModes)) replacedCount++;
     }
     if (end < nodes.length) {
       await new Promise<void>(resolve => setTimeout(resolve, 0));

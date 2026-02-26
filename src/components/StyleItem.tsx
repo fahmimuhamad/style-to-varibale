@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Variable, AlertCircle, Plus, Crosshair } from 'lucide-react';
+import { ArrowRight, Check, Variable, AlertCircle, Plus, Crosshair, Link2, X } from 'lucide-react';
 import { StyleUsage } from '../types';
 
 interface StyleItemProps {
@@ -8,11 +8,17 @@ interface StyleItemProps {
   onCreateVariable?: (styleId: string) => void;
   onSelectLayersWithVariable?: (styleId: string, variableId: string) => void;
   onSelectLayersWithStyle?: (styleId: string) => void;
+  onChooseVariable?: (styleId: string) => void;
+  onClearManualChoice?: (styleId: string) => void;
   creatingStyleId?: string | null;
   disabled?: boolean;
+  /** When user chose a variable for this (unmatched) style */
+  manualChoice?: { variableId: string; variableName: string; modeName?: string } | null;
+  /** Disable checkbox only (e.g. unmatched without a chosen variable) */
+  checkboxDisabled?: boolean;
 }
 
-function StyleItem({ style, selected, onToggle, onCreateVariable, onSelectLayersWithVariable, onSelectLayersWithStyle, creatingStyleId, disabled = false }: StyleItemProps) {
+function StyleItem({ style, selected, onToggle, onCreateVariable, onSelectLayersWithVariable, onSelectLayersWithStyle, onChooseVariable, onClearManualChoice, creatingStyleId, disabled = false, manualChoice = null, checkboxDisabled = false }: StyleItemProps) {
   const isCreating = creatingStyleId === style.styleId;
   return (
     <div
@@ -25,17 +31,17 @@ function StyleItem({ style, selected, onToggle, onCreateVariable, onSelectLayers
       }`}
     >
       <div className="flex items-start gap-3">
-        <label className="mt-0.5 inline-flex items-center">
+        <label className={`mt-0.5 inline-flex items-center ${checkboxDisabled ? 'cursor-default opacity-70' : 'cursor-pointer'}`}>
           <input
             type="checkbox"
             checked={selected}
             onChange={(e) => onToggle(style.styleId, e.target.checked)}
-            disabled={disabled}
+            disabled={disabled || checkboxDisabled}
             className="sr-only"
           />
           <span
             className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${
-              disabled
+              disabled || checkboxDisabled
                 ? 'bg-slate-50 border-slate-200'
                 : selected
                 ? 'bg-blue-600 border-blue-600'
@@ -63,7 +69,7 @@ function StyleItem({ style, selected, onToggle, onCreateVariable, onSelectLayers
           </div>
 
           <div
-            className={`mt-2 rounded-lg px-3 py-2 flex items-center gap-2 min-h-[32px] border ${
+            className={`mt-2 rounded-lg px-3 py-2 flex flex-wrap items-center gap-2 min-h-[32px] border ${
               style.matchingVariable
                 ? 'bg-blue-50/80 border-blue-200/50'
                 : 'bg-amber-50/80 border-amber-200/50'
@@ -98,32 +104,73 @@ function StyleItem({ style, selected, onToggle, onCreateVariable, onSelectLayers
               </>
             ) : (
               <>
-                <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" aria-hidden />
-                <span className="text-[11px] text-amber-800 flex-1" title="Create a variable or ensure your library has one with a matching name.">
-                  No matching variable
-                </span>
-                {onSelectLayersWithStyle && (
-                  <button
-                    type="button"
-                    onClick={() => onSelectLayersWithStyle(style.styleId)}
-                    disabled={disabled}
-                    className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-amber-600 hover:bg-amber-100 hover:text-amber-800 transition-colors"
-                    title="Select layers with this style"
-                    aria-label="Select layers"
-                  >
-                    <Crosshair className="w-4 h-4" />
-                  </button>
-                )}
-                {onCreateVariable && (
-                  <button
-                    type="button"
-                    onClick={() => onCreateVariable(style.styleId)}
-                    disabled={disabled || isCreating}
-                    className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white text-[11px] font-medium transition-colors shadow-sm"
-                  >
-                    <Plus className="w-3 h-3" />
-                    {isCreating ? 'Creating…' : 'Create variable'}
-                  </button>
+                {manualChoice ? (
+                  <>
+                    <Variable className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" aria-hidden />
+                    <span className="text-[11px] text-slate-600 flex-shrink-0">Maps to</span>
+                    <ArrowRight className="w-3 h-3 text-blue-400 flex-shrink-0" aria-hidden />
+                    <span className="font-semibold text-blue-900 text-xs flex-1 min-w-0 overflow-hidden text-ellipsis" title={manualChoice.variableName}>
+                      {manualChoice.variableName}
+                      {manualChoice.modeName != null && (
+                        <span className="text-slate-500 font-normal ml-1">({manualChoice.modeName})</span>
+                      )}
+                    </span>
+                    {onClearManualChoice && (
+                      <button
+                        type="button"
+                        onClick={() => onClearManualChoice(style.styleId)}
+                        disabled={disabled}
+                        className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                        title="Clear choice"
+                        aria-label="Clear choice"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" aria-hidden />
+                    <span className="text-[11px] text-amber-800 flex-1 min-w-0" title="Create a variable or choose one manually.">
+                      No matching variable
+                    </span>
+                    {onSelectLayersWithStyle && (
+                      <button
+                        type="button"
+                        onClick={() => onSelectLayersWithStyle(style.styleId)}
+                        disabled={disabled}
+                        className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-amber-600 hover:bg-amber-100 hover:text-amber-800 transition-colors"
+                        title="Select layers with this style"
+                        aria-label="Select layers"
+                      >
+                        <Crosshair className="w-4 h-4" />
+                      </button>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+                      {onCreateVariable && (
+                        <button
+                          type="button"
+                          onClick={() => onCreateVariable(style.styleId)}
+                          disabled={disabled || isCreating}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white text-[11px] font-medium transition-colors shadow-sm whitespace-nowrap"
+                        >
+                          <Plus className="w-3 h-3" />
+                          {isCreating ? 'Creating…' : 'Create variable'}
+                        </button>
+                      )}
+                      {onChooseVariable && (
+                        <button
+                          type="button"
+                          onClick={() => onChooseVariable(style.styleId)}
+                          disabled={disabled}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-600 hover:bg-slate-700 text-white text-[11px] font-medium transition-colors shadow-sm whitespace-nowrap"
+                        >
+                          <Link2 className="w-3 h-3" />
+                          Choose variable
+                        </button>
+                      )}
+                    </div>
+                  </>
                 )}
               </>
             )}

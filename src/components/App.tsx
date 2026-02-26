@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { RefreshCw, CheckCircle2, AlertCircle, Search, ListFilter, Copy, MoreVertical, Palette, Crosshair, EyeOff, Check } from 'lucide-react';
 import { StyleUsage, MessageToUI, RawColorUsage, VariableOption } from '../types';
-import StyleList from './StyleList';
+import StyleList, { ManualChoice } from './StyleList';
 import VariableSelect from './VariableSelect';
 
 function App() {
@@ -26,6 +26,10 @@ function App() {
   const [replacing, setReplacing] = useState(false);
   const [rescanAfterVariableCreated, setRescanAfterVariableCreated] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [manualVariableChoices, setManualVariableChoices] = useState<Record<string, ManualChoice>>({});
+  const [chooseVariableForStyleId, setChooseVariableForStyleId] = useState<string | null>(null);
+  const [chosenVariableForMode, setChosenVariableForMode] = useState<{ styleId: string; variableId: string } | null>(null);
+  const [variableModesForChoice, setVariableModesForChoice] = useState<{ modeId: string; name: string }[]>([]);
   const progressIntervalRef = useRef<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -65,9 +69,9 @@ function App() {
   }, [styles, query, filter]);
 
   const selectableIds = useMemo(() => {
-    // Only selectable when a matching variable exists (convertible).
-    return filteredStyles.filter(s => s.matchingVariable).map(s => s.styleId);
-  }, [filteredStyles]);
+    // Selectable when matched OR when unmatched with a chosen variable.
+    return filteredStyles.filter(s => s.matchingVariable || manualVariableChoices[s.styleId]).map(s => s.styleId);
+  }, [filteredStyles, manualVariableChoices]);
 
   useEffect(() => {
     window.onmessage = (event) => {
@@ -88,6 +92,9 @@ function App() {
         setRawColors(msg.rawColors || []);
         setAllVariables(msg.allVariables || []);
         setRawColorChoices({});
+        setChooseVariableForStyleId(null);
+        setChosenVariableForMode(null);
+        setVariableModesForChoice([]);
         setScanPhase(null);
         setLoading(false);
         if (progressIntervalRef.current !== null) {
@@ -128,6 +135,8 @@ function App() {
           text: n > 0 ? `Selected ${n} layer${n === 1 ? '' : 's'} on this page` : 'No layers use this variable on the current page',
         });
         setTimeout(() => setMessage(null), 3000);
+      } else if (msg.type === 'variable-modes' && msg.variableId !== undefined) {
+        setVariableModesForChoice(msg.modes || []);
       } else if (msg.type === 'import-styles-complete') {
         setImportingStyles(false);
         const created = msg.importCreated != null ? msg.importCreated : 0;
@@ -262,33 +271,44 @@ function App() {
   };
 
   const handleReplaceSelected = () => {
-    if (selectedStyles.size === 0) {
+    const replacements: { styleId: string; variableId: string; modeId?: string }[] = [];
+    selectedStyles.forEach(styleId => {
+      const style = styles.find(s => s.styleId === styleId);
+      if (style && style.matchingVariable) {
+        replacements.push({ styleId, variableId: style.matchingVariable.id });
+      } else {
+        const choice = manualVariableChoices[styleId];
+        if (choice) {
+          replacements.push({
+            styleId,
+            variableId: choice.variableId,
+            ...(choice.modeId ? { modeId: choice.modeId } : {}),
+          });
+        }
+      }
+    });
+    if (replacements.length === 0) {
       setMessage({
         type: 'error',
-        text: 'Please select at least one style to replace',
+        text: 'Select at least one style (matched or unmatched with a chosen variable).',
       });
       setTimeout(() => setMessage(null), 3000);
       return;
     }
 
-    const selectedCount = selectedStyles.size;
-    const ok = window.confirm(
-      `Replace ${selectedCount} selected style${selectedCount === 1 ? '' : 's'} with matching variables?`
-    );
-    if (!ok) return;
-
-    const replacements: { styleId: string; variableId: string }[] = [];
-    selectedStyles.forEach(styleId => {
-      const style = styles.find(s => s.styleId === styleId);
-      if (style && style.matchingVariable) {
-        replacements.push({ styleId, variableId: style.matchingVariable.id });
-      }
-    });
-    if (replacements.length === 0) return;
+    const matchedInPayload = replacements.filter(r => styles.some(s => s.styleId === r.styleId && s.matchingVariable)).length;
+    const manualInPayload = replacements.length - matchedInPayload;
+    const msg =
+      manualInPayload === 0
+        ? `Replace ${replacements.length} style${replacements.length === 1 ? '' : 's'} with variables?`
+        : matchedInPayload === 0
+          ? `Replace ${replacements.length} unmatched style${replacements.length === 1 ? '' : 's'} with chosen variables?`
+          : `Replace ${replacements.length} styles (${matchedInPayload} matched + ${manualInPayload} chosen)?`;
+    if (!window.confirm(msg)) return;
 
     setReplacing(true);
     setLoading(true);
-    const payload: { type: 'replace'; replacements: { styleId: string; variableId: string }[]; scope?: typeof scanScope; pageIds?: string[]; setExplicitModeForDarkPrefix?: boolean } = {
+    const payload: { type: 'replace'; replacements: typeof replacements; scope?: typeof scanScope; pageIds?: string[]; setExplicitModeForDarkPrefix?: boolean } = {
       type: 'replace',
       replacements,
       scope: scanScope,
@@ -298,6 +318,47 @@ function App() {
       payload.pageIds = Array.from(selectedPageIds);
     }
     parent.postMessage({ pluginMessage: payload }, '*');
+  };
+
+  const handleChooseVariable = (styleId: string) => {
+    setChooseVariableForStyleId(styleId);
+    setChosenVariableForMode(null);
+    setVariableModesForChoice([]);
+  };
+
+  const handleVariableSelect = (variableId: string) => {
+    if (!chooseVariableForStyleId) return;
+    setChosenVariableForMode({ styleId: chooseVariableForStyleId, variableId });
+    setChooseVariableForStyleId(null);
+    setVariableModesForChoice([]);
+    parent.postMessage({ pluginMessage: { type: 'get-variable-modes', variableId } }, '*');
+  };
+
+  const handleModeSelect = (modeId: string | null, modeName?: string) => {
+    if (!chosenVariableForMode) return;
+    setManualVariableChoices((prev) => ({
+      ...prev,
+      [chosenVariableForMode.styleId]: {
+        variableId: chosenVariableForMode.variableId,
+        ...(modeId ? { modeId, modeName } : {}),
+      },
+    }));
+    setChosenVariableForMode(null);
+    setVariableModesForChoice([]);
+  };
+
+  const handleCancelChooseVariable = () => {
+    setChooseVariableForStyleId(null);
+    setChosenVariableForMode(null);
+    setVariableModesForChoice([]);
+  };
+
+  const handleClearManualChoice = (styleId: string) => {
+    setManualVariableChoices((prev) => {
+      const next = { ...prev };
+      delete next[styleId];
+      return next;
+    });
   };
 
   return (
@@ -616,9 +677,19 @@ function App() {
                 onCreateVariable={handleCreateVariable}
                 onSelectLayersWithVariable={handleSelectLayersWithVariable}
                 onSelectLayersWithStyle={handleSelectLayersWithStyle}
+                onChooseVariable={handleChooseVariable}
+                onClearManualChoice={handleClearManualChoice}
                 creatingStyleId={creatingStyleId}
                 onSelectAllMatched={handleSelectAll}
                 onClearSelection={handleClearSelection}
+                manualVariableChoices={manualVariableChoices}
+                chooseVariableForStyleId={chooseVariableForStyleId}
+                chosenVariableForMode={chosenVariableForMode}
+                variableModesForChoice={variableModesForChoice}
+                allVariables={allVariables}
+                onVariableSelect={handleVariableSelect}
+                onModeSelect={handleModeSelect}
+                onCancelChooseVariable={handleCancelChooseVariable}
               />
             )}
 
@@ -686,15 +757,18 @@ function App() {
       {(styles.length > 0 || rawColors.length > 0) && (
         <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-200/80 px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
           <div className="space-y-2">
-            {styles.length > 0 && (
-              <button
-                onClick={handleReplaceSelected}
-                disabled={loading || selectedStyles.size === 0}
-                className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-semibold text-sm transition-all shadow-sm"
-              >
-                Replace selected ({selectedStyles.size})
-              </button>
-            )}
+            {styles.length > 0 && (() => {
+              const replaceCount = selectedStyles.size;
+              return (
+                <button
+                  onClick={handleReplaceSelected}
+                  disabled={loading || replaceCount === 0}
+                  className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-semibold text-sm transition-all shadow-sm"
+                >
+                  Replace selected ({replaceCount})
+                </button>
+              );
+            })()}
             {rawColors.length > 0 && (() => {
               const rawMappingsCount = rawColors.filter((r) => rawColorChoices[r.colorKey]).length;
               if (rawMappingsCount === 0) return null;

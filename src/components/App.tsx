@@ -697,6 +697,7 @@ function App() {
             )}
             {rawColors.length > 0 && (() => {
               const rawMappingsCount = rawColors.filter((r) => rawColorChoices[r.colorKey]).length;
+              if (rawMappingsCount === 0) return null;
               return (
                 <button
                   onClick={() => {
@@ -716,7 +717,7 @@ function App() {
                     }
                     parent.postMessage({ pluginMessage: payload }, '*');
                   }}
-                  disabled={loading || rawMappingsCount === 0}
+                  disabled={loading}
                   className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-semibold text-sm transition-all shadow-sm"
                 >
                   Replace hex colors ({rawMappingsCount} chosen)

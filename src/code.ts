@@ -60,7 +60,7 @@ interface MessageToUI {
 
 figma.showUI(__html__, {
   width: 420,
-  height: 600,
+  height: 900,
   themeColors: true,
 });
 
